@@ -1,0 +1,14 @@
+movies = [
+    {"title": "The Notebook", "year": 2004, "subgenre": "Drama", "rating": 7.8},
+    {"title": "La La Land", "year": 2016, "subgenre": "Musical", "rating": 8.0},
+    {"title": "Titanic", "year": 1997, "subgenre": "Drama", "rating": 7.9},
+    {"title": "10 Things I Hate About You", "year": 1999, "subgenre": "Comedy", "rating": 7.3},
+    {"title": "Crazy Rich Asians", "year": 2018, "subgenre": "Comedy", "rating": 6.9},
+    {"title": "Pride and Prejudice", "year": 2005, "subgenre": "Drama", "rating": 7.8},
+    {"title": "To All the Boys I've Loved Before", "year": 2018, "subgenre": "Teen", "rating": 7.1},
+    {"title": "A Walk to Remember", "year": 2002, "subgenre": "Drama", "rating": 7.3},
+    {"title": "The Fault in Our Stars", "year": 2014, "subgenre": "Drama", "rating": 7.7},
+    {"title": "Love, Simon", "year": 2018, "subgenre": "Teen", "rating": 7.5}
+]
+with open("romantic_movies.json", "w") as file:
+    json.dump(movies, file, indent=4)
