@@ -38,7 +38,8 @@ class DataHandler:
         except FileNotFoundError:
             print("File not found.") #if file not found, print this message
 
-
+#setting the example
+person = person("Alex
         
     
 
