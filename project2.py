@@ -13,17 +13,51 @@ def is_prime(n):
             return False
     return True
 
-#multithreading function
+#multithreading 
 def multi_core_prime_search(duration, num_processes):
     manager = multiprocessing.Manager()
-    # Shared variable to store the highest prime found.
-    highest_prime = manager.Value('i', 0)
+    highest_prime = manager.('i', 0)
     start_time = time.time()
-    processes = []
+# Each set checks numbers starting at start and increments by step
+    def set(start, step):
+        n = start
+        while time.time() - start_time < duration:
+            if is_prime(n):
+                # update the shared highest if a bigger prime is found (inspired by copilot im sorry i didnt know how to set the time limit)
+                if n > highest_prime.value:
+                    highest_prime.value = n
+            n += step
+    processes = [] 
     for i in range(num_processes):
-        I = multiprocessing.Process(target=worker, args=(i, num_processes))
+        p = multiprocessing.Process(target=set, args=(i, num_processes))
         processes.append(p)
-        i.start()
-    for i in processes:
-        i.join()
-    return highest_prime.value 
+        p.start()
+    for p in processes:
+        p.join() 
+
+#Threaded
+def threaded_prime_search(duration, num_threads):
+    highest_prime = 0
+    lock = threading.Lock()
+    start_time = time.time()
+
+    def worker(start, step):
+        nonlocal highest_prime
+        n = start
+        while time.time() - start_time < duration:
+            if is_prime(n):
+                with lock:
+                    if n > highest_prime:
+                        highest_prime = n
+            n += step
+
+    threads = []
+    for i in range(num_threads):
+        t = threading.Thread(target=worker, args=(i, num_threads))
+        threads.append(t)
+        t.start()
+    for t in threads:
+        t.join()
+    return highest_prime
+
+
