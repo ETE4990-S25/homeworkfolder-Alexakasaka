@@ -7,7 +7,8 @@ client = docker.from_env()
 container_name = "nginx"
 
 try:
-    # Attempt to retrieve the container
+    # Attempt to retrieve the container (used a generic name but you can change it)
+    # This assumes the container is named "nginx" for this lab
     container = client.containers.get(container_name)
 
     # Check the current status of the container
@@ -38,6 +39,7 @@ try:
         print("Network:", network_name)
         print("IP Address:", ip_address)
 
+#added try except to catch errors(autofilled by copilot)
 except docker.errors.NotFound:
     print("Container not found:", container_name)
 except Exception as error:
