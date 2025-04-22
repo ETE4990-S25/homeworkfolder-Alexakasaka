@@ -210,3 +210,63 @@ if __name__ == "__main__":
             time.sleep(1)
     except KeyboardInterrupt:
         print("\nStopped monitoring.")
+
+#part 3b - graphing the log summary
+LOG_FILE = "log_summary.json"
+WAIT_TIME = 2
+
+# Read the JSON file (reused )
+def load_logs():
+    try:
+        with open(LOG_FILE, "r") as f:
+            return json.load(f)
+    except Exception as e:
+        print("Couldn't read log file:", e)
+        return {}
+
+# Main function for plotting (had to look this up how to do this)
+def plot_logs():
+    plt.ion()  # Turn on interactive mode
+    fig, ax = plt.subplots()
+    last_updated = 0
+
+    while True:
+        if os.path.exists(LOG_FILE):
+            current_time = os.path.getmtime(LOG_FILE)
+            if current_time != last_updated:
+                last_updated = current_time
+                logs = load_logs()
+
+                # Reset the chart
+                ax.clear()
+
+                levels = []
+                totals = []
+
+                for level, msgs in logs.items():
+                    levels.append(level)
+                    totals.append(sum(msgs.values()))
+
+                ax.bar(levels, totals, color=['blue', 'orange', 'yellow', 'red'])
+                ax.set_title("Log Level Distribution")
+                ax.set_ylabel("Count")
+                ax.set_xlabel("Log Level")
+
+                plt.draw()
+                plt.pause(0.1)
+
+        time.sleep(WAIT_TIME)
+
+# Start graphing in a daemon thread (autofilled by chatgpt)
+if __name__ == "__main__":
+    t = threading.Thread(target=plot_logs)
+    t.daemon = True
+    t.start()
+
+    print("Graphing logs... Press Ctrl+C to stop.\n")
+
+    try:
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        print("\nStopped graphing.")
