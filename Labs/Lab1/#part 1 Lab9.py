@@ -156,7 +156,7 @@ if __name__ == "__main__":
             print("done")
 
 
-#Part 3a - monitoring the log summary
+#Part 3a - the log summary
 # Checking the json
 LOG_FILE = "log_summary.json"
 # Function to load the JSON log summary (function was autofilled by copilot)
@@ -257,7 +257,7 @@ def plot_logs():
 
         time.sleep(WAIT_TIME)
 
-# Start graphing in a daemon thread (autofilled by chatgpt)
+# Start graphing in a daemon thread
 if __name__ == "__main__":
     t = threading.Thread(target=plot_logs)
     t.daemon = True
