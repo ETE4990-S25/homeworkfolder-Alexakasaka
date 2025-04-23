@@ -7,7 +7,7 @@ client = docker.from_env()
 container_name = "nginx"
 
 try:
-    # Attempt to retrieve the container (used a generic name but you can change it)
+    # Attempt to get the container (used a generic name here but you can change it)
     # This assumes the container is named "nginx" for this lab
     container = client.containers.get(container_name)
 
