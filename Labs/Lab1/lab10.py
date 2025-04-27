@@ -1,47 +1,43 @@
 import docker
 
-# Set up Docker client connection
+# Connect to the local Docker daemon
 client = docker.from_env()
 
-# Define the name of the container we're checking
+# Name of the container to monitor
 container_name = "nginx"
 
 try:
-    # Attempt to get the container (used a generic name here but you can change it)
-    # This assumes the container is named "nginx" for this lab
+    # Try to acsess the container
     container = client.containers.get(container_name)
 
-    # Check the current status of the container
-    status = container.status
-    is_running = status == "running"
-    needs_restart = not is_running
+    # Check if the container is running
+    is_running = container.status == "running"
 
-    # Restart the container if it's not running
-    was_restarted = False
-    was_restarted = container.restart() is None if needs_restart else False
+#added a failsafe (autofilled by copilot)
+    if not is_running:
+        print(f"Container '{container_name}' is not running. Restarting...")
+        container.restart()
+        container.reload()
+        was_restarted = True
+    else:
+        was_restarted = False
 
-    # Refresh container information
-    container.reload()
+    # Get network info
+    network_info = container.attrs.get("NetworkSettings", {}).get("Networks", {})
+    has_network = bool(network_info)
 
-    # Gather network information
-    network_data = container.attrs.get("NetworkSettings", {})
-    network_list = network_data.get("Networks", {})
-    has_network = len(network_list) > 0
+    # Print container status
+    print(f"Container name: {container_name}")
+    print(f"Is running: {container.status == 'running'}")
+    print(f"Was restarted: {was_restarted}")
+    print(f"Has network: {has_network}")
 
-    # Print diagnostic information using flags
-    print("Container name:", container_name)
-    print("Is running:", is_running)
-    print("Was restarted:", was_restarted)
-    print("Has network:", has_network)
+    for network_name, settings in network_info.items():
+        ip_address = settings.get("IPAddress")
+        print(f"Network: {network_name}, IP Address: {ip_address}")
 
-    for network_name in network_list:
-        ip_address = network_list[network_name].get("IPAddress")
-        print("Network:", network_name)
-        print("IP Address:", ip_address)
-
-#added try except to catch errors(autofilled by copilot)
 except docker.errors.NotFound:
-    print("Container not found:", container_name)
-except Exception as error:
-    print("Unexpected error:", str(error))
+    print(f"Container '{container_name}' not found.")
+except Exception as e:
+    print(f"An unexpected error occurred: {e}")
 
