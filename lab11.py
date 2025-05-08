@@ -46,7 +46,7 @@ def convert_sleep_duration(sleep):
     is_7_to_8 = sleep == "7-8 hours"
     is_more_than_8 = sleep == "More than 8 hours"
     
-    # assign values based on flags
+    # assign values based on flags (autofilled by copilot)
     value = np.nan  # default value
     value = 4.5 if is_less_than_5 else value
     value = 5.5 if is_5_to_6 else value
@@ -161,7 +161,7 @@ numeric_cols = ['Age', 'Academic Pressure', 'Work Pressure', 'GPA',
                 'Work/Study Hours', 'Financial Stress', 'Suicidal Thoughts',
                 'Family Mental Illness', 'Depression']
 
-# Make the correlation matrix
+# Make the correlation matrix (assisted by copilot)
 correlation_matrix = df[numeric_cols].corr()
 
 #heatmap
