@@ -4,6 +4,11 @@ from pathlib import Path
 import logging
 from datetime import datetime
 
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+
 # Set up logging
 logging.basicConfig(
     level=logging.INFO,
@@ -14,15 +19,14 @@ logging.basicConfig(
     ]
 )
 
+
 class CurrencyDataAnalyzer:
     def __init__(self, base_currency):
-        """
-        Set up the analyzer with the given base currency.
-        """
+        #Set up the analyzer with the given base currency.
         self.base_currency = base_currency
         self.data_path = Path(f"currency_data/{base_currency}")
 
-        if not self.data_path.exists():
+        if not self.data_path.exists(): #error handling if missing data
             logging.error(f"Data folder not found for {base_currency}")
             raise FileNotFoundError(f"Directory does not exist: {self.data_path}")
         
@@ -30,9 +34,7 @@ class CurrencyDataAnalyzer:
         self.df = None
 
     def load_data(self):
-        """
-        Load all JSON files and compile into a single DataFrame.
-        """
+        #Load all JSON files and compile into a single DataFrame.
         records = []
         files = list(self.data_path.glob("*_exchange_rates.json"))
 
@@ -66,7 +68,7 @@ class CurrencyDataAnalyzer:
                         })
 
             except Exception as e:
-                logging.warning(f"Failed to process {file.name}: {e}")
+                logging.warning(f"Failed to load {file.name}: {e}")
 
         if records:
             self.df = pd.DataFrame(records)
@@ -74,15 +76,13 @@ class CurrencyDataAnalyzer:
             logging.info("Data loaded successfully.")
             return True
         else:
-            logging.error("No valid data could be loaded.")
+            logging.error("No valid data")
             return False
 
-    def prepare_data(self):
-        """
-        Clean and reshape data for analysis.
-        """
+    def prepare_data(self): #assisted by copilot
+        #Clean and reshape data for analysis.
         if self.df is None:
-            logging.error("No data to prepare. Did you call load_data()?")
+            logging.error("No data")
             return False
 
         try:
@@ -96,9 +96,7 @@ class CurrencyDataAnalyzer:
             return False
 
     def analyze_volatility(self, currencies=None):
-        """
-        Compute volatility stats for selected currencies.
-        """
+        #find volatility stats for selected currencies.
         if not hasattr(self, "pivoted_df"):
             logging.error("Data not prepared. Run prepare_data() first.")
             return None
@@ -125,9 +123,8 @@ class CurrencyDataAnalyzer:
         return stats
 
     def plot_exchange_rates(self, currencies=None, start_date=None, end_date=None):
-        """
-        Plot exchange rates for selected currencies.
-        """
+
+        #Plot exchange rates for selected currencies #(syntax assisted by copilot)
         if not hasattr(self, "pivoted_df"):
             logging.error("Data not ready. Use prepare_data() first.")
             return None
@@ -157,9 +154,7 @@ class CurrencyDataAnalyzer:
         return plt.gcf()
 
     def plot_volatility_heatmap(self, window=30):
-        """
-        Heatmap of rolling volatility.
-        """
+        #Heatmap of rolling volatility.
         if not hasattr(self, "pivoted_df"):
             logging.error("Data not ready. Use prepare_data() first.")
             return None
@@ -179,3 +174,93 @@ class CurrencyDataAnalyzer:
         plt.xlabel("Date")
         logging.info("Volatility heatmap created.")
         return plt.gcf()
+
+    def plot_correlation_matrix(self):
+        #Heatmap of correlation matrix between currencies 
+        if not hasattr(self, "pivoted_df"):
+            logging.error("Data not ready. Use prepare_data() first.")
+            return None
+
+        major = ['USD', 'EUR', 'GBP', 'JPY', 'CNY']
+        currencies = [c for c in major if c in self.pivoted_df.columns]
+
+        if len(currencies) < 5:
+            extra = [c for c in self.pivoted_df.columns if c not in currencies]
+            currencies += extra[:5 - len(currencies)]
+
+        corr = self.pivoted_df[currencies].pct_change().corr()
+
+        plt.figure(figsize=(10, 8)) #copilot helped with the syntax again
+        sns.heatmap(corr, annot=True, cmap="coolwarm", vmin=-1, vmax=1)
+        plt.title("Currency Movement Correlation")
+        plt.tight_layout()
+        logging.info("Correlation matrix plotted.")
+        return plt.gcf()
+
+    def identify_extreme_periods(self, currencies=None, percentile=95):
+        #Identify unusually volatile days for selected currencies
+        if not hasattr(self, "pivoted_df"):
+            logging.error("Data not ready. Use prepare_data() first.")
+            return None
+
+        if currencies is None:
+            major = ['USD', 'EUR', 'GBP', 'JPY', 'CNY']
+            currencies = [c for c in major if c in self.pivoted_df.columns]
+            if not currencies:
+                currencies = self.pivoted_df.columns[:5].tolist()
+
+        changes = self.pivoted_df[currencies].pct_change().abs()
+        thresholds = changes.quantile(percentile / 100)
+
+        result = {}
+        for c in currencies:
+            extreme_dates = changes[changes[c] > thresholds[c]].index.tolist()
+            result[c] = extreme_dates
+
+        logging.info("Extreme volatility periods ided.")
+        return result
+
+
+def main():
+    base_currency = "AUD"  #example 
+    try:
+        analyzer = CurrencyDataAnalyzer(base_currency)
+
+        if analyzer.load_data() and analyzer.prepare_data():
+            metrics = analyzer.analyze_volatility()
+            print("\nVolatility Metrics:\n", metrics)
+
+            plt.figure(1)
+            analyzer.plot_exchange_rates()
+            plt.tight_layout()
+            plt.savefig(f"{base_currency}_exchange_rates.png")
+
+            plt.figure(2)
+            analyzer.plot_volatility_heatmap()
+            plt.tight_layout()
+            plt.savefig(f"{base_currency}_volatility_heatmap.png")
+
+            plt.figure(3)
+            analyzer.plot_correlation_matrix()
+            plt.tight_layout()
+            plt.savefig(f"{base_currency}_correlation_matrix.png")
+
+            extremes = analyzer.identify_extreme_periods()
+            print("\nExtreme Volatility Periods:")
+            for currency, days in extremes.items():
+                if days:
+                    print(f"{currency}: {len(days)} extreme days")
+                    sample = [d.strftime("%Y-%m-%d") for d in days[:5]]
+                    print(f"Sample: {', '.join(sample)}")
+
+        else:
+            logging.error("error lmao try again")
+
+    except Exception as e:
+        logging.error(f"Something went wrong in main(): {e}")
+
+
+if __name__ == "__main__":
+    main()
+
+#I hope you could have mercy on me.
