@@ -245,12 +245,12 @@ def main():
             plt.tight_layout()
             plt.savefig(f"{base_currency}_correlation_matrix.png")
 
-            extremes = analyzer.identify_extreme_periods()
+            extremes = analyzer.identify_extreme_periods() #plot was made with assistance from copilot
             print("\nExtreme Volatility Periods:")
             for currency, days in extremes.items():
                 if days:
                     print(f"{currency}: {len(days)} extreme days")
-                    sample = [d.strftime("%Y-%m-%d") for d in days[:5]]
+                    sample = [d.strftime("%Y-%m-%d") for d in days[:5]] 
                     print(f"Sample: {', '.join(sample)}")
 
         else:
